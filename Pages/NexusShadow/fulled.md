@@ -223,6 +223,8 @@ namespace MyCustomPlugin
   - `WriteFile`: Writes content to a file.
   - `ReadFile`: Reads the content of a file.
 
+- [Utilities methods list](methods)
+
 #### Conclusion
 
 Now you know how to create plugins for the NexusShadow Platform. Feel free to experiment and add new features to your plugins. If you have any questions or issues, don't hesitate to ask for help.
