@@ -7,3 +7,4 @@ Welcome to the NexusShadow Platform Wiki. Here you will find documentation on ho
 - [Installation](installation)
 - [Usage](usage)
 - [Development](development)
+- [Uttils methods](methods)
