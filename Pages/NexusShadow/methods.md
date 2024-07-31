@@ -1,3 +1,4 @@
+[Use This for better reading](https://github.com/Ameterius/ameterius.github.io/blob/main/Pages/NexusShadow/methods.md)
 ### Network Utility
 `using static NexusShadow.Core.Subcore.NetworkUtility;`
 --------------------------------------------------------------
