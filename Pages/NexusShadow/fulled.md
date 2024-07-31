@@ -232,6 +232,3 @@ Now you know how to create plugins for the NexusShadow Platform. Feel free to ex
 
 1. **Build the project** (Ctrl + Shift + B).
 2. **Run the project** (F5 or Ctrl + F5).
-
-> [!CAUTION]
-> All work is carried out strictly within the framework of the law, all projects presented here are intended strictly for the purposes of study, pintest
