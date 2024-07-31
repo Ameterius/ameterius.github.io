@@ -21,8 +21,7 @@ Plugins are a key part of the NexusShadow Platform, allowing you to extend its f
 
 1. In the Solution Explorer, right-click on the project and select "Add Reference".
 2. In the "Reference Manager" dialog, add references to the necessary assemblies:
-   - `NexusShadow.Core.dll`
-   - `NexusShadow.Plugins.dll`
+   - `NexusShadow.exe`
 
 #### Step 3: Implementing the IPlugin Interface
 
