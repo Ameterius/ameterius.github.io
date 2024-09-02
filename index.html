@@ -1,5 +1,228 @@
-<div style="text-align: center; color: #345; padding-top: 10px;">
-<h1 style="color: #317399;"><span style="color: #000000;">Главная странца</span></h1>
-<p><span style="color: #000000;"><a href="https://ameterius.github.io/Pages/SHLauncher/">SHLauncher</a></span></p>
-  <p><span style="color: #000000;"><a href="https://ameterius.github.io/Pages/GlotokLauncher/">Glotok Launcher</a></span></p>
-</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ametero Lol :Z</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow-y: scroll;
+            font-family: Arial, sans-serif;
+            background-color: #000;
+            color: #fff;
+        }
+        .video-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            overflow: hidden;
+        }
+        .video-background video {
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .blur {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            backdrop-filter: blur(10px);
+            z-index: 2;
+        }
+        .content {
+            position: relative;
+            z-index: 3;
+            text-align: center;
+            padding: 50px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+        p {
+            font-size: 1.5em;
+        }
+        .avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: block;
+        }
+        .faq-item {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 20px;
+        }
+        .faq-question {
+            background-color: #333;
+            color: #fff;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            display: block;
+            width: 100%;
+            text-align: left;
+            font-size: 1.5em;
+        }
+        .faq-answer {
+            display: none;
+            background-color: #444;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: left;
+        }
+        .language-switch {
+            margin-bottom: 20px;
+        }
+        .language-switch button {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.5em;
+            cursor: pointer;
+            margin: 0 10px;
+        }
+        .github-stats img {
+            max-width: 100%;
+            border-radius: 5px;
+        }
+        .project-list {
+            margin-top: 20px;
+            border-top: 1px solid #333;
+            padding-top: 20px;
+        }
+        .project-list h2 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        .project-list ul {
+            list-style-type: none;
+            padding: 0;
+            text-align: left;
+        }
+        .project-list li {
+            margin-bottom: 10px;
+            font-size: 1.5em;
+        }
+        .project-prefix {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 15px;
+            background-color: #007bff;
+            color: #fff;
+            margin-right: 10px;
+        }
+        .project-prefix.red {
+            background-color: #ff0000;
+        }
+        .project-prefix.yellow {
+            background-color: #ffff00;
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="video-background">
+        <video autoplay loop muted>
+            <source src="retroismylife.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    </div>
+    <div class="blur"></div>
+    <div class="content">
+        <img src="https://avatars.githubusercontent.com/u/101631790?v=4" alt="Avatar" class="avatar">
+        <h1>Ameterius</h1>
+        <div class="language-switch">
+            <button onclick="switchLanguage('en')">🇬🇧</button>
+            <button onclick="switchLanguage('ru')">🇷🇺</button>
+        </div>
+        <div class="faq-item">
+            <button class="faq-question" onclick="toggleAnswer('aboutMe')">About Me</button>
+            <div class="faq-answer" id="aboutMe">
+                <p>I'm a 14-year-old dude (Soon to be 15, damn it), just a regular student, learning as I go, but I'm learning to program. I'm fully tolerant to coffein, so only two cans of Red Bull. Maybe I'll become someone someday.</p>
+            </div>
+        </div>
+        <div class="faq-item">
+            <button class="faq-question" onclick="toggleAnswer('contactInfo')">Contact Information</button>
+            <div class="faq-answer" id="contactInfo">
+                <p>Email: ametero@proton.me</p>
+                <p>Telegram: ametero.t.me</p>
+            </div>
+        </div>
+        <div class="faq-item">
+            <button class="faq-question" onclick="toggleAnswer('supportInfo')">Support Me!</button>
+            <div class="faq-answer" id="supportInfo">
+                <p>Boosty (For Russians): <a href="https://boosty.to/ametero">https://boosty.to/ametero</a></p>
+                <p>ETC Wallet: 0x8437683Bbe927e29b0e0497306957cEd4d74c3c0</p>
+            </div>
+        </div>
+        <div class="faq-item">
+            <button class="faq-question" onclick="toggleAnswer('githubStats')">GitHub Statistics</button>
+            <div class="faq-answer github-stats" id="githubStats">
+                <img src="https://github-readme-stats.vercel.app/api?username=Ameterius&show_icons=true&theme=dark" alt="GitHub Stats">
+                <img src="https://denvercoder1-github-readme-stats.vercel.app/api/top-langs/?username=Ameterius&layout=compact&theme=dark" alt="Top Languages">
+            </div>
+        </div>
+        <div class="project-list">
+            <h2>Project List</h2>
+            <ul>
+                <li><span class="project-prefix red">Soon update, maybe:)</span><a href="https://github.com/Ameterius/NexusShadow">NexusShadow</a></li>
+                <li><span class="project-prefix yellow">In developing</span>KwenLauncher (Replace of old SHLauncher)</li>
+                <li><span class="project-prefix">Usefull, but can be deprecated</span><a href="https://github.com/Ameterius/Anti-RealtekHD">AntiRealtekHD Miner</a></li>
+            </ul>
+            <p>* Only my major projects, maybe :O</p>
+        </div>
+    </div>
+    <script>
+        function switchLanguage(lang) {
+            const aboutMe = document.getElementById('aboutMe');
+            const contactInfo = document.getElementById('contactInfo');
+            const supportInfo = document.getElementById('supportInfo');
+
+            if (lang === 'ru') {
+                aboutMe.innerHTML = `<p>Я 14-летний долб... человек (Скоро 15 летие блэт), в целом школяр как школяр, учусь а бы как, но учусь программировать. К кофейну толерантен полностью,  так что только две баночки Red Bullа. Мб кем-то стану.</p>`;
+                contactInfo.innerHTML = `
+                    <p>Email: ametero@proton.me</p>
+                    <p>Telegram: ametero.t.me</p>
+                `;
+                supportInfo.innerHTML = `
+                    <p>Boosty (Для русских): <a href="https://boosty.to/ametero">https://boosty.to/ametero</a></p>
+                    <p>ETC Кошелек: 0x8437683Bbe927e29b0e0497306957cEd4d74c3c0</p>
+                `;
+            } else {
+                aboutMe.innerHTML = `<p>I'm a 14-year-old dude (Soon to be 15, damn it), just a regular student, learning as I go, but I'm learning to program. I'm fully tolerant to coffein, so only two cans of Red Bull. Maybe I'll become someone someday.</p>`;
+                contactInfo.innerHTML = `
+                    <p>Email: ametero@proton.me</p>
+                    <p>Telegram: ametero.t.me</p>
+                `;
+                supportInfo.innerHTML = `
+                    <p>Boosty (For Russians): <a href="https://boosty.to/ametero">https://boosty.to/ametero</a></p>
+                    <p>ETC Wallet: 0x8437683Bbe927e29b0e0497306957cEd4d74c3c0</p>
+                `;
+            }
+        }
+
+        function toggleAnswer(id) {
+            const answer = document.getElementById(id);
+            answer.style.display = answer.style.display === 'none' || answer.style.display === '' ? 'block' : 'none';
+        }
+    </script>
+</body>
+</html>
