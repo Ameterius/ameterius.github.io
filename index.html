@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ametero</title>
+    <style>
+        :root {
+            --bg-color: #000000;
+            --text-color: #ffffff;
+            --button-bg: #111111;
+            --button-hover: #ffffff;
+            --button-text: #ffffff;
+            --transition-speed: 0.4s;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Grain Texture Effect */
+        .grain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+            opacity: 0.05;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        .container {
+            text-align: center;
+            z-index: 1;
+            animation: fadeIn var(--transition-speed) ease-out forwards;
+            max-width: 400px;
+            padding: 20px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: #111;
+            margin: 0 auto 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            border: 1px solid #222;
+        }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: grayscale(100%);
+        }
+
+        .name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 25px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .links {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 40px;
+        }
+
+        .link-btn {
+            text-decoration: none;
+            color: var(--button-text);
+            background-color: var(--button-bg);
+            padding: 10px 20px;
+            font-size: 0.9rem;
+            border: 1px solid #222;
+            transition: all var(--transition-speed) ease;
+            position: relative;
+            display: inline-block;
+        }
+
+        .link-btn:hover {
+            background-color: var(--bg-color);
+            border-color: var(--text-color);
+            text-decoration: underline;
+            text-underline-offset: 4px;
+        }
+
+        .quote {
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: #888;
+            font-style: italic;
+            max-width: 300px;
+            margin: 0 auto;
+            opacity: 0.8;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .container {
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="grain"></div>
+
+    <div class="container">
+        <div class="avatar">
+            <!-- Default SVG avatar since no image was provided -->
+            <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        </div>
+        
+        <div class="name">Ametero</div>
+
+        <div class="links">
+            <a href="https://github.com/ameterius" target="_blank" class="link-btn">GitHub</a>
+            <a href="https://steamcommunity.com/id/Ametero/" target="_blank" class="link-btn">Steam</a>
+            <a href="https://t.me/ametero" target="_blank" class="link-btn">Telegram</a>
+        </div>
+
+        <div class="quote">
+            Пустой вокзал нам шепчет, что я стану завтра никем для тебя Но где-то через вечность напишу внезапно: "Привет, как дела?"
+        </div>
+    </div>
+
+    <script>
+        // The fade-in is handled by CSS, but we can add a subtle mouse-move effect to the grain or elements if desired.
+        document.addEventListener('mousemove', (e) => {
+            const moveX = (e.clientX - window.innerWidth / 2) * 0.01;
+            const moveY = (e.clientY - window.innerHeight / 2) * 0.01;
+            document.querySelector('.container').style.transform = `translate(${moveX}px, ${moveY}px)`;
+        });
+    </script>
+</body>
+</html>
