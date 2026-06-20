@@ -9,9 +9,11 @@
             --bg-color: #000000;
             --text-color: #ffffff;
             --button-bg: #111111;
-            --button-hover: #ffffff;
-            --button-text: #ffffff;
+            --button-hover-bg: #000000;
+            --button-border: #222;
+            --button-hover-border: #fff;
             --transition-speed: 0.4s;
+            --accent: #ffffff;
         }
 
         * {
@@ -25,13 +27,15 @@
             color: var(--text-color);
             font-family: 'Courier New', Courier, monospace;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            overflow: hidden;
+            overflow-x: hidden;
+            position: relative;
         }
 
-        /* Grain Texture Effect */
+        /* Grain Texture */
         .grain {
             position: fixed;
             top: 0;
@@ -44,17 +48,103 @@
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
         }
 
-        .container {
+        /* Background dark text */
+        .bg-text {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 5rem;
+            font-weight: bold;
+            color: #151515;
+            white-space: nowrap;
+            pointer-events: none;
+            user-select: none;
+            z-index: 0;
+            opacity: 0.6;
+            letter-spacing: 2px;
             text-align: center;
+            line-height: 1.2;
+        }
+        @media (max-width: 768px) {
+            .bg-text {
+                font-size: 2.5rem;
+                white-space: normal;
+                width: 90%;
+            }
+        }
+
+        /* Navigation */
+        .nav {
+            position: fixed;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+            display: flex;
+            gap: 20px;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+            padding: 8px 20px;
+            border-radius: 50px;
+            border: 1px solid #222;
+        }
+        .nav-btn {
+            background: transparent;
+            border: none;
+            color: #aaa;
+            font-family: inherit;
+            font-size: 0.9rem;
+            cursor: pointer;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 5px 15px;
+            border-radius: 20px;
+            transition: all var(--transition-speed) ease;
+        }
+        .nav-btn.active {
+            color: #fff;
+            background: #222;
+        }
+        .nav-btn:hover {
+            color: #fff;
+        }
+
+        /* Main wrapper for mouse move effect */
+        .main-wrapper {
             z-index: 1;
-            animation: fadeIn var(--transition-speed) ease-out forwards;
-            max-width: 400px;
+            transition: transform 0.1s ease-out;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding-top: 80px; /* space for nav */
+        }
+
+        /* Sections */
+        .section {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
             padding: 20px;
+        }
+        .section.active {
+            display: flex;
+            animation: fadeIn 0.4s ease-out forwards;
         }
 
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Home section styles */
+        .container {
+            text-align: center;
+            max-width: 400px;
+            padding: 20px;
         }
 
         .avatar {
@@ -90,23 +180,23 @@
             flex-direction: column;
             gap: 12px;
             margin-bottom: 40px;
+            width: 100%;
         }
 
         .link-btn {
             text-decoration: none;
-            color: var(--button-text);
+            color: var(--button-text, #fff);
             background-color: var(--button-bg);
             padding: 10px 20px;
             font-size: 0.9rem;
-            border: 1px solid #222;
+            border: 1px solid var(--button-border);
             transition: all var(--transition-speed) ease;
-            position: relative;
             display: inline-block;
+            text-align: center;
         }
-
         .link-btn:hover {
-            background-color: var(--bg-color);
-            border-color: var(--text-color);
+            background-color: var(--button-hover-bg);
+            border-color: var(--button-hover-border);
             text-decoration: underline;
             text-underline-offset: 4px;
         }
@@ -121,10 +211,115 @@
             opacity: 0.8;
         }
 
+        /* Servers section */
+        .server-card {
+            background: #111;
+            border: 1px solid #222;
+            padding: 30px 25px;
+            max-width: 450px;
+            width: 90%;
+            text-align: left;
+            transition: all 0.3s ease;
+        }
+        .server-card h2 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #fff;
+        }
+        .server-card p {
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: #aaa;
+            margin-bottom: 25px;
+        }
+        .connect-btn {
+            background: #fff;
+            color: #000;
+            border: none;
+            padding: 10px 25px;
+            font-family: inherit;
+            font-weight: bold;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+        .connect-btn:hover {
+            background: #ccc;
+            color: #000;
+        }
+
+        /* Modal (popup) */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-box {
+            background: #111;
+            border: 1px solid #333;
+            padding: 40px 30px;
+            text-align: center;
+            max-width: 320px;
+            width: 90%;
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+        .modal-overlay.show .modal-box {
+            transform: translateY(0);
+        }
+        .modal-text {
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+            color: #fff;
+            margin-bottom: 25px;
+        }
+        .close-modal {
+            background: transparent;
+            border: 1px solid #444;
+            color: #aaa;
+            font-family: inherit;
+            padding: 8px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+        .close-modal:hover {
+            border-color: #fff;
+            color: #fff;
+        }
+
         /* Responsive */
         @media (max-width: 480px) {
-            .container {
+            .container, .server-card {
                 width: 90%;
+            }
+            .nav {
+                top: 20px;
+                gap: 10px;
+                padding: 6px 15px;
+            }
+            .nav-btn {
+                padding: 5px 10px;
+                font-size: 0.8rem;
             }
         }
     </style>
@@ -132,32 +327,105 @@
 <body>
 
     <div class="grain"></div>
+    <div class="bg-text" aria-hidden="true">I will never forget, i love you, U</div>
 
-    <div class="container">
-        <div class="avatar">
-            <!-- Default SVG avatar since no image was provided -->
-            <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+    <!-- Navigation Tabs -->
+    <nav class="nav">
+        <button class="nav-btn active" data-tab="home">Home</button>
+        <button class="nav-btn" data-tab="servers">Servers</button>
+    </nav>
+
+    <!-- Main wrapper for mouse effect -->
+    <div class="main-wrapper" id="mainWrapper">
+
+        <!-- Home Section -->
+        <div class="section active" id="homeSection">
+            <div class="container">
+                <div class="avatar">
+                    <!-- Default SVG avatar -->
+                    <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                </div>
+                <div class="name">Ametero</div>
+                <div class="links">
+                    <a href="https://github.com/ameterius" target="_blank" class="link-btn">GitHub</a>
+                    <a href="https://steamcommunity.com/id/Ametero/" target="_blank" class="link-btn">Steam</a>
+                    <a href="https://t.me/ametero" target="_blank" class="link-btn">Telegram</a>
+                </div>
+                <div class="quote">
+                    Пустой вокзал нам шепчет, что я стану завтра никем для тебя Но где-то через вечность напишу внезапно: "Привет, как дела?"
+                </div>
+            </div>
         </div>
-        
-        <div class="name">Ametero</div>
 
-        <div class="links">
-            <a href="https://github.com/ameterius" target="_blank" class="link-btn">GitHub</a>
-            <a href="https://steamcommunity.com/id/Ametero/" target="_blank" class="link-btn">Steam</a>
-            <a href="https://t.me/ametero" target="_blank" class="link-btn">Telegram</a>
+        <!-- Servers Section -->
+        <div class="section" id="serversSection">
+            <div class="server-card">
+                <h2>AdekvatRP — Адекватный DarkRP</h2>
+                <p>DarkRP сервер с уникальными (пока вроде одной) механикой и понятием того, что нет школьников которые украли у мамы 100 рублей и купили админку и возомнили что боги.</p>
+                <button class="connect-btn" id="connectBtn">Connect</button>
+            </div>
         </div>
+    </div>
 
-        <div class="quote">
-            Пустой вокзал нам шепчет, что я стану завтра никем для тебя Но где-то через вечность напишу внезапно: "Привет, как дела?"
+    <!-- Modal (popup) -->
+    <div class="modal-overlay" id="connectModal">
+        <div class="modal-box">
+            <div class="modal-text">Connect soon...</div>
+            <button class="close-modal" id="closeModal">Close</button>
         </div>
     </div>
 
     <script>
-        // The fade-in is handled by CSS, but we can add a subtle mouse-move effect to the grain or elements if desired.
+        // Tab switching
+        const navBtns = document.querySelectorAll('.nav-btn');
+        const sections = document.querySelectorAll('.section');
+        const homeSection = document.getElementById('homeSection');
+        const serversSection = document.getElementById('serversSection');
+
+        navBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Update active button
+                navBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                // Show corresponding section
+                const tab = btn.dataset.tab;
+                sections.forEach(section => {
+                    section.classList.remove('active');
+                });
+                if (tab === 'home') {
+                    homeSection.classList.add('active');
+                } else if (tab === 'servers') {
+                    serversSection.classList.add('active');
+                }
+            });
+        });
+
+        // Modal logic
+        const connectBtn = document.getElementById('connectBtn');
+        const modal = document.getElementById('connectModal');
+        const closeModalBtn = document.getElementById('closeModal');
+
+        connectBtn.addEventListener('click', () => {
+            modal.classList.add('show');
+        });
+
+        closeModalBtn.addEventListener('click', () => {
+            modal.classList.remove('show');
+        });
+
+        // Close modal when clicking outside the box
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('show');
+            }
+        });
+
+        // Subtle mouse move effect on the main wrapper
         document.addEventListener('mousemove', (e) => {
-            const moveX = (e.clientX - window.innerWidth / 2) * 0.01;
-            const moveY = (e.clientY - window.innerHeight / 2) * 0.01;
-            document.querySelector('.container').style.transform = `translate(${moveX}px, ${moveY}px)`;
+            const moveX = (e.clientX - window.innerWidth / 2) * 0.008;
+            const moveY = (e.clientY - window.innerHeight / 2) * 0.008;
+            document.getElementById('mainWrapper').style.transform = `translate(${moveX}px, ${moveY}px)`;
         });
     </script>
 </body>
