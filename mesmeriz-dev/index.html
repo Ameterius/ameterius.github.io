@@ -1,1 +1,1145 @@
-work in progress
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>𝐌𝐄𝐒𝐌𝐄𝐑𝐈𝐙 — Genshin Impact & Honkai: Star Rail Flood</title>
+    <style>
+        :root {
+            /* Монохроматичная холодная фиолетовая гамма */
+            --bg-dark: #0f0a19;
+            --bg-card: #181126;
+            --bg-card-hover: #211833;
+            --lavender: #8e7bb8;
+            --lavender-light: #b3a1db;
+            --lavender-dark: #57447d;
+            --steel-gray: #828c9e;
+            --steel-light: #a8b2c4;
+            --white-highlight: #f2f4fc;
+            --accent-glow: rgba(179, 161, 219, 0.35);
+            --gold-jackpot: #dfc285;
+            --border-color: #36294e;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--white-highlight);
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 15%, rgba(87, 68, 125, 0.28) 0%, transparent 40%),
+                radial-gradient(circle at 90% 85%, rgba(142, 123, 184, 0.2) 0%, transparent 45%);
+        }
+
+        /* Навигационная панель */
+        header {
+            background: rgba(24, 17, 38, 0.88);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 1rem 2.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.6rem;
+            font-weight: 800;
+            letter-spacing: 3px;
+            color: var(--white-highlight);
+            text-shadow: 0 0 15px var(--accent-glow);
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .logo span {
+            color: var(--lavender-light);
+            font-weight: 400;
+            font-size: 1.2rem;
+        }
+
+        nav {
+            display: flex;
+            gap: 0.8rem;
+            background: rgba(15, 10, 25, 0.6);
+            padding: 0.4rem;
+            border-radius: 30px;
+            border: 1px solid var(--border-color);
+        }
+
+        nav a {
+            color: var(--steel-light);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            padding: 0.5rem 1.4rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        nav a:hover {
+            color: var(--white-highlight);
+            background: rgba(87, 68, 125, 0.3);
+        }
+
+        nav a.active {
+            color: var(--white-highlight);
+            background: linear-gradient(135deg, var(--lavender-dark), var(--lavender));
+            box-shadow: 0 2px 12px var(--accent-glow);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+        }
+
+        .auth-widget {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: rgba(33, 24, 51, 0.8);
+            border: 1px solid var(--border-color);
+            padding: 0.4rem 1.2rem;
+            border-radius: 30px;
+        }
+
+        .balance {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 700;
+            color: var(--lavender-light);
+            font-size: 1.05rem;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--lavender-dark), var(--lavender));
+            color: var(--white-highlight);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 0.6rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 22px var(--accent-glow);
+            border-color: var(--white-highlight);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--lavender);
+            color: var(--lavender-light);
+        }
+
+        .btn-outline:hover {
+            background: var(--lavender-dark);
+            color: var(--white-highlight);
+        }
+
+        .btn-flood {
+            background: linear-gradient(135deg, #6c4ca8, #9d80d4);
+            border: 1px solid var(--lavender-light);
+            box-shadow: 0 0 15px rgba(157, 128, 212, 0.4);
+        }
+
+        /* Основной контейнер */
+        main {
+            max-width: 1100px;
+            width: 100%;
+            margin: 2.5rem auto;
+            padding: 0 1.5rem;
+            flex-grow: 1;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.35s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- ВКЛАДКА 1: ГЛАВНАЯ --- */
+        .hero {
+            background: linear-gradient(135deg, rgba(33, 24, 51, 0.95), rgba(18, 10, 30, 0.95)),
+                        radial-gradient(circle at top right, rgba(142, 123, 184, 0.25) 0%, transparent 70%);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 3.5rem 3rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 12px 35px rgba(0,0,0,0.5);
+            margin-bottom: 2.5rem;
+        }
+
+        .hero h1 {
+            font-size: 3.2rem;
+            margin-bottom: 1rem;
+            letter-spacing: 2px;
+            background: linear-gradient(90deg, var(--white-highlight), var(--lavender-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            color: var(--steel-light);
+            font-size: 1.15rem;
+            max-width: 750px;
+            line-height: 1.7;
+            margin-bottom: 2.2rem;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 1.2rem;
+            flex-wrap: wrap;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.8rem;
+            transition: transform 0.3s, border-color 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--lavender);
+        }
+
+        .feature-card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.6rem;
+            color: var(--white-highlight);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .feature-card p {
+            color: var(--steel-light);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* --- ОБЩИЕ СТИЛИ ИГРОВЫХ СТРАНИЦ --- */
+        .game-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .game-header h2 {
+            font-size: 2.4rem;
+            color: var(--white-highlight);
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .game-header p {
+            color: var(--steel-light);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .game-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+            max-width: 750px;
+            margin: 0 auto;
+        }
+
+        .cost-badge {
+            background: rgba(18, 10, 30, 0.9);
+            border: 1px solid var(--lavender-dark);
+            padding: 0.5rem 1.4rem;
+            border-radius: 25px;
+            font-weight: 700;
+            color: var(--lavender-light);
+            margin-bottom: 2rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.05rem;
+        }
+
+        /* --- КОЛЕСО ФОРТУНЫ --- */
+        .wheel-container {
+            position: relative;
+            width: 360px;
+            height: 360px;
+            margin: 1rem 0 2.5rem 0;
+        }
+
+        .wheel-pointer {
+            position: absolute;
+            top: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 18px solid transparent;
+            border-right: 18px solid transparent;
+            border-top: 32px solid var(--white-highlight);
+            z-index: 10;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.8));
+        }
+
+        canvas#wheelCanvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            box-shadow: 0 0 35px rgba(142, 123, 184, 0.35);
+            border: 5px solid var(--border-color);
+            transition: transform 4.5s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+        }
+
+        .wheel-sectors-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            width: 100%;
+            margin-top: 2.5rem;
+            border-top: 1px solid var(--border-color);
+            padding-top: 2rem;
+        }
+
+        .sector-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            background: rgba(15, 10, 25, 0.5);
+            padding: 0.7rem 1rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .sector-icon {
+            width: 34px;
+            height: 34px;
+            flex-shrink: 0;
+        }
+
+        /* --- КВАНТОВЫЕ СЛОТЫ --- */
+        .slots-machine {
+            background: #120a1e;
+            border: 3px solid var(--border-color);
+            border-radius: 20px;
+            padding: 2.5rem;
+            display: flex;
+            gap: 1.8rem;
+            margin: 1.5rem 0 2.5rem 0;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.8), 0 0 25px rgba(142, 123, 184, 0.2);
+        }
+
+        .slot-reel {
+            width: 130px;
+            height: 160px;
+            background: linear-gradient(180deg, #0a0612 0%, #211833 50%, #0a0612 100%);
+            border: 2px solid var(--lavender-dark);
+            border-radius: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.6);
+            transition: all 0.1s;
+            position: relative;
+            overflow: hidden;
+            padding: 0.8rem;
+        }
+
+        .slot-reel.spinning {
+            filter: blur(4px);
+            transform: scale(0.96);
+        }
+
+        .slot-reel img {
+            width: 85px;
+            height: 85px;
+            object-fit: contain;
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.25));
+            transition: transform 0.3s;
+        }
+
+        .slot-reel .slot-name {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--steel-light);
+            margin-top: 0.6rem;
+            text-align: center;
+            letter-spacing: 0.5px;
+        }
+
+        .payout-box {
+            width: 100%;
+            margin-top: 2.5rem;
+            background: rgba(15, 10, 25, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 1.5rem;
+        }
+
+        .payout-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .payout-table th, .payout-table td {
+            text-align: left;
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .payout-table th {
+            color: var(--lavender-light);
+            font-size: 0.95rem;
+        }
+
+        .payout-table td {
+            font-size: 0.95rem;
+        }
+
+        .symbol-combo {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .symbol-combo img {
+            width: 28px;
+            height: 28px;
+        }
+
+        /* --- ВКЛАДКА 4: ПРАВИЛА И О ФЛУДЕ --- */
+        .content-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 3rem;
+            line-height: 1.8;
+            color: var(--steel-light);
+            margin-bottom: 2rem;
+        }
+
+        .content-card h3 {
+            color: var(--white-highlight);
+            font-size: 1.5rem;
+            margin: 1.5rem 0 0.8rem 0;
+            border-left: 4px solid var(--lavender-light);
+            padding-left: 0.8rem;
+        }
+
+        .content-card h3:first-child {
+            margin-top: 0;
+        }
+
+        .content-card ul, .content-card ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Модальное окно */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 10, 25, 0.88);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal {
+            background: var(--bg-card);
+            border: 1px solid var(--lavender);
+            border-radius: 20px;
+            padding: 2.8rem;
+            max-width: 440px;
+            width: 90%;
+            box-shadow: 0 15px 45px rgba(0,0,0,0.8), 0 0 35px var(--accent-glow);
+            text-align: center;
+        }
+
+        .modal h3 {
+            font-size: 1.7rem;
+            color: var(--white-highlight);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group {
+            margin: 1.5rem 0;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--lavender-light);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--white-highlight);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            border-color: var(--lavender-light);
+        }
+
+        /* Toast */
+        #toast {
+            position: fixed;
+            bottom: 2rem; right: 2rem;
+            background: var(--bg-card);
+            border: 1px solid var(--lavender-light);
+            padding: 1.2rem 1.8rem;
+            border-radius: 14px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 20px var(--accent-glow);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transform: translateY(160%);
+            transition: transform 0.4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+            z-index: 500;
+        }
+
+        #toast.show {
+            transform: translateY(0);
+        }
+
+        @media (max-width: 850px) {
+            header {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+            }
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            .slots-machine {
+                flex-direction: column;
+                align-items: center;
+                padding: 1.5rem;
+            }
+            .slot-reel {
+                width: 100%;
+                max-width: 200px;
+                height: 140px;
+            }
+            .wheel-container {
+                width: 280px;
+                height: 280px;
+            }
+            .wheel-sectors-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        footer {
+            border-top: 1px solid var(--border-color);
+            padding: 2.5rem;
+            text-align: center;
+            color: var(--steel-gray);
+            font-size: 0.88rem;
+            margin-top: auto;
+            background: rgba(15, 10, 25, 0.6);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Встроенные векторные изображения GI + HSR (SVG Data-URIs для полной автономности) -->
+    <script>
+        const ICONS = {
+            // Примогем (Genshin Impact)
+            primogem: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><linearGradient id="pgrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%23ff9aeb"/><stop offset="50%" stop-color="%2367d2ff"/><stop offset="100%" stop-color="%23a880ff"/></linearGradient></defs><polygon points="50,5 68,38 95,50 68,62 50,95 32,62 5,50 32,38" fill="url(%23pgrad)" stroke="%23dfc285" stroke-width="4"/><polygon points="50,18 62,42 82,50 62,58 50,82 38,58 18,50 38,42" fill="%23ffffff" opacity="0.4"/></svg>`,
+            // Звездный Нефрит (Honkai Star Rail)
+            stellarJade: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><linearGradient id="jgrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%23a6f9d6"/><stop offset="40%" stop-color="%2356c1ff"/><stop offset="100%" stop-color="%238463ff"/></linearGradient></defs><polygon points="50,8 88,35 75,90 25,90 12,35" fill="url(%23jgrad)" stroke="%23ffffff" stroke-width="3"/><polygon points="50,8 75,90 25,90" fill="%23ffffff" opacity="0.25"/><polyline points="12,35 50,55 88,35" fill="none" stroke="%23ffffff" stroke-width="2.5" opacity="0.7"/></svg>`,
+            // Переплетение судеб (Genshin Intertwined Fate)
+            fate: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><radialGradient id="fgrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="%23ffbae3"/><stop offset="60%" stop-color="%23d666ff"/><stop offset="100%" stop-color="%23422980"/></radialGradient></defs><circle cx="50" cy="50" r="42" fill="url(%23fgrad)" stroke="%23f2f4fc" stroke-width="3"/><path d="M30,70 Q50,20 75,45 T40,80" fill="none" stroke="%23ffffff" stroke-width="4" stroke-linecap="round"/><circle cx="75" cy="45" r="5" fill="%23ffffff"/></svg>`,
+            // Особый звездный пропуск (HSR Star Rail Pass)
+            railPass: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><linearGradient id="tgrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%23dfc285"/><stop offset="50%" stop-color="%23b89650"/><stop offset="100%" stop-color="%236e5321"/></linearGradient></defs><rect x="12" y="22" width="76" height="56" rx="8" fill="url(%23tgrad)" stroke="%23ffffff" stroke-width="2.5"/><circle cx="50" cy="50" r="16" fill="%23181126" stroke="%23dfc285" stroke-width="2"/><polygon points="50,38 53,46 62,46 55,51 57,60 50,55 43,60 45,51 38,46 47,46" fill="%23dfc285"/></svg>`,
+            // Знак Ахерон / Небытие (HSR Nihility)
+            acheron: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="%23120a1e" stroke="%23cf3c57" stroke-width="3"/><path d="M20,75 C35,40 60,30 85,25 C65,55 45,65 20,75 Z" fill="%23b0234b"/><path d="M15,50 Q50,15 85,50 Q50,85 15,50" fill="none" stroke="%238e7bb8" stroke-width="2.5" stroke-dasharray="6,4"/><circle cx="50" cy="50" r="12" fill="%23cf3c57" filter="blur(2px)"/></svg>`,
+            // Знак Райден / Электро (Genshin Electro)
+            electro: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="%232b1847" stroke="%23b3a1db" stroke-width="3"/><path d="M50,18 L38,50 L50,50 L42,82 L64,44 L50,44 L60,18 Z" fill="%23d6a6ff" stroke="%23ffffff" stroke-width="1.5"/></svg>`
+        };
+    </script>
+
+    <!-- Навигация -->
+    <header>
+        <div class="logo" onclick="switchTab('home')">✦ 𝐌𝐄𝐒𝐌𝐄𝐑𝐈𝐙 <span>// FLOOD</span></div>
+        <nav>
+            <a id="tab-btn-home" class="active" onclick="switchTab('home')">🏠 Главная</a>
+            <a id="tab-btn-wheel" onclick="switchTab('wheel')">🎡 Колесо Фортуны</a>
+            <a id="tab-btn-slots" onclick="switchTab('slots')">🎰 Квантовые Слоты</a>
+            <a id="tab-btn-rules" onclick="switchTab('rules')">📜 Правила & О флуде</a>
+        </nav>
+        <div class="header-right">
+            <div class="auth-widget">
+                <span class="balance" id="balanceDisplay">✦ 500</span>
+                <button class="btn btn-outline" id="authBtn" onclick="openModal()">Войти</button>
+            </div>
+            <a href="https://ameterius.github.io/" target="_blank" class="btn btn-flood">🚀 Перейти во флуд</a>
+        </div>
+    </header>
+
+    <!-- Основной контент -->
+    <main>
+      
+        <!-- ================= ВКЛАДКА 1: ГЛАВНАЯ ================= -->
+        <div id="tab-home" class="tab-content active">
+            <div class="hero">
+                <h1>Добро пожаловать в 𝐌𝐄𝐒𝐌𝐄𝐑𝐈𝐙</h1>
+                <p>Главный игровой и ролевой портал для участников флуда по вселенным <b>Genshin Impact</b> и <b>Honkai: Star Rail</b>. Соревнуйся в мини-играх с уникальной графикой, собирай кристаллы и общайся в нашей уютной монохромной обители.</p>
+                <div class="hero-actions">
+                    <button class="btn" style="padding: 0.8rem 2rem; font-size: 1.05rem;" onclick="switchTab('wheel')">🎡 Крутить Колесо</button>
+                    <button class="btn btn-outline" style="padding: 0.8rem 2rem; font-size: 1.05rem;" onclick="switchTab('slots')">🎰 Квантовые Слоты</button>
+                    <a href="https://ameterius.github.io/" target="_blank" class="btn btn-flood" style="padding: 0.8rem 2rem; font-size: 1.05rem;">💬 Вход в беседу (Ameterius)</a>
+                </div>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h3>⚡ Иллюстрации GI + HSR</h3>
+                    <p>Вместо скучного текста мы используем визуальную символику Тейвата и Пенаконии: Примогемы, Звездный Нефрит, Переплетения судеб и знаки Эонов.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>✦ Честная система</h3>
+                    <p>Все игры работают локально в вашем браузере с полным сохранением баланса. При первой авторизации начисляется бонус 500 ✦!</p>
+                </div>
+                <div class="feature-card">
+                    <h3>🌙 Отдельные комнаты</h3>
+                    <p>Каждая мини-игра вынесена в свою собственную просторную вкладку, чтобы ничего не мешало погружению в атмосферу азарта и общения.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= ВКЛАДКА 2: КОЛЕСО ФОРТУНЫ ================= -->
+        <div id="tab-wheel" class="tab-content">
+            <div class="game-header">
+                <h2>🎡 Колесо Фортуны Тейвата и Звезд</h2>
+                <p>Испытай благословение Архонтов и Эонов. Каждый сектор украшен символикой наших любимых миров!</p>
+            </div>
+
+            <div class="game-box">
+                <div class="cost-badge">Стоимость прокрута: 60 ✦</div>
+                
+                <div class="wheel-container">
+                    <div class="wheel-pointer"></div>
+                    <canvas id="wheelCanvas" width="360" height="360"></canvas>
+                </div>
+
+                <button class="btn" id="spinWheelBtn" style="padding: 0.9rem 2.5rem; font-size: 1.15rem;" onclick="spinWheel()">Крутить колесо (60 ✦)</button>
+
+                <!-- Таблица секторов колеса -->
+                <div class="wheel-sectors-grid">
+                    <div class="sector-item">
+                        <img src="" class="sector-icon icon-primogem" alt="">
+                        <div><b>+250 ✦</b> <span style="color: var(--gold-jackpot)">ДЖЕКПОТ (Примогем)</span></div>
+                    </div>
+                    <div class="sector-item">
+                        <img src="" class="sector-icon icon-stellarJade" alt="">
+                        <div><b>+150 ✦</b> Звездный Нефрит</div>
+                    </div>
+                    <div class="sector-item">
+                        <img src="" class="sector-icon icon-fate" alt="">
+                        <div><b>+100 ✦</b> Переплетение Судеб</div>
+                    </div>
+                    <div class="sector-item">
+                        <img src="" class="sector-icon icon-railPass" alt="">
+                        <div><b>Повтор (60 ✦)</b> Особый пропуск</div>
+                    </div>
+                    <div class="sector-item">
+                        <img src="" class="sector-icon icon-electro" alt="">
+                        <div><b>+30 ✦</b> Знак Райден</div>
+                    </div>
+                    <div class="sector-item">
+                        <img src="" class="sector-icon icon-acheron" alt="">
+                        <div><b>+10 ✦</b> Знак Ахерон</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= ВКЛАДКА 3: КВАНТОВЫЕ СЛОТЫ ================= -->
+        <div id="tab-slots" class="tab-content">
+            <div class="game-header">
+                <h2>🎰 Квантовые Слоты</h2>
+                <p>Вращайте барабаны судьбы с реалистичными иконками из Genshin Impact и Honkai: Star Rail. Соберите 3 Примогема для главного куша!</p>
+            </div>
+
+            <div class="game-box">
+                <div class="cost-badge">Стоимость прокрута: 20 ✦</div>
+                
+                <div class="slots-machine">
+                    <div class="slot-reel" id="reel1">
+                        <img id="reelImg1" src="" alt="">
+                        <div class="slot-name" id="reelName1">Примогем</div>
+                    </div>
+                    <div class="slot-reel" id="reel2">
+                        <img id="reelImg2" src="" alt="">
+                        <div class="slot-name" id="reelName2">Зв. Нефрит</div>
+                    </div>
+                    <div class="slot-reel" id="reel3">
+                        <img id="reelImg3" src="" alt="">
+                        <div class="slot-name" id="reelName3">Судьба</div>
+                    </div>
+                </div>
+
+                <button class="btn" id="spinSlotsBtn" style="padding: 0.9rem 2.5rem; font-size: 1.15rem;" onclick="spinSlots()">Запустить слоты (20 ✦)</button>
+
+                <div class="payout-box">
+                    <table class="payout-table">
+                        <tr>
+                            <th>Комбинация</th>
+                            <th>Награда</th>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="symbol-combo">
+                                    <img class="icon-primogem" src="" alt="">
+                                    <img class="icon-primogem" src="" alt="">
+                                    <img class="icon-primogem" src="" alt="">
+                                    <span style="color: var(--gold-jackpot); font-weight: bold; margin-left: 0.5rem;">Три Примогема</span>
+                                </div>
+                            </td>
+                            <td><b style="color: var(--gold-jackpot); font-size: 1.1rem;">+666 ✦ СУПЕР ДЖЕКПОТ!</b></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="symbol-combo">
+                                    <img class="icon-stellarJade" src="" alt="">
+                                    <img class="icon-stellarJade" src="" alt="">
+                                    <img class="icon-stellarJade" src="" alt="">
+                                    <span style="margin-left: 0.5rem;">Три Звездных Нефрита</span>
+                                </div>
+                            </td>
+                            <td><b style="color: #67d2ff; font-size: 1.05rem;">+300 ✦ Мега Куш!</b></td>
+                        </tr>
+                        <tr>
+                            <td>Любые 3 одинаковые иконки</td>
+                            <td><b>+100 ✦</b></td>
+                        </tr>
+                        <tr>
+                            <td>Любые 2 одинаковые иконки</td>
+                            <td><b>+10 ✦</b> (Возврат части крутки)</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= ВКЛАДКА 4: ПРАВИЛА И О ФЛУДЕ ================= -->
+        <div id="tab-rules" class="tab-content">
+            <div class="content-card">
+                <h3>🌙 Что такое 𝐌𝐄𝐒𝐌𝐄𝐑𝐈𝐙?</h3>
+                <p>
+                    <b>𝐌𝐄𝐒𝐌𝐄𝐑𝐈𝐙</b> — это специализированный портал для участников текстового и ролевого флуда по вселенным <i>Genshin Impact</i> и <i>Honkai: Star Rail</i>. Мы создали это пространство для тех, кто любит эстетику холодного космоса, лавандовых сумерек и дружеского общения.
+                </p>
+                <p style="margin-top: 1rem;">
+                    Основная беседа и сообщество доступны по ссылке: <a href="https://ameterius.github.io/" target="_blank" style="color: var(--lavender-light); font-weight: bold;">https://ameterius.github.io/</a>. Присоединяйтесь, чтобы участвовать в ивентах, ролевых отыгрышах и обсуждениях!
+                </p>
+
+                <h3 style="margin-top: 2.5rem;">❖ Правила сообщества</h3>
+                <ol>
+                    <li><b>Уважение к участникам:</b> Запрещены токсичность, оскорбления персонажей или участников беседы, а также разжигание конфликтов.</li>
+                    <li><b>Честная игра:</b> Игровая валюта («Кристаллы Месмериза ✦») используется для внутреннего рейтинга во флуде. Использование багов или автокликеров запрещено.</li>
+                    <li><b>Атмосфера:</b> Поддерживайте монохромно-фиолетовую эстетику и дружелюбный тон.</li>
+                </ol>
+
+                <h3 style="margin-top: 2.5rem;">⚠️ Отказ от ответственности (Disclaimer)</h3>
+                <p>
+                    Данный сайт разработан исключительно для развлекательных целей сообщества <b>𝐌𝐄𝐒𝐌𝐄𝐑𝐈𝐙</b>. Виртуальная валюта на сайте не имеет реальной финансовой ценности, не может быть приобретена за реальные деньги, продана или выведена. Все игры являются симуляцией внутриигровой гачи.
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Модальное окно фиктивной авторизации -->
+    <div class="modal-overlay" id="authModal">
+        <div class="modal">
+            <h3>✦ Фиктивная Авторизация</h3>
+            <p style="color: var(--steel-light); font-size: 0.95rem; margin-top: 0.4rem;">Представьтесь для входа в портал 𝐌𝐄𝐒𝐌𝐄𝐑𝐈𝐙</p>
+            <div class="form-group">
+                <label>Ваше имя / персонаж из GI или HSR:</label>
+                <input type="text" id="usernameInput" placeholder="Например: Ахерон, Райден, Кафка, Фурина">
+            </div>
+            <div class="form-group">
+                <label>Любимая вселенная:</label>
+                <select id="universeSelect">
+                    <option value="Both">Обе вселенные (Genshin + Star Rail)</option>
+                    <option value="HSR">Honkai: Star Rail</option>
+                    <option value="Genshin">Genshin Impact</option>
+                </select>
+            </div>
+            <button class="btn" style="width: 100%; padding: 0.9rem; font-size: 1.05rem;" onclick="login()">Войти в портал (+500 ✦ бонус)</button>
+            <p style="font-size: 0.78rem; color: var(--steel-gray); margin-top: 1.2rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                Данные сохраняются локально в вашем браузере. Вы сможете продолжить игру в любое время.
+            </p>
+        </div>
+    </div>
+
+    <!-- Уведомление (Toast) -->
+    <div id="toast">
+        <span style="font-size: 1.8rem;" id="toastIcon">🎉</span>
+        <div>
+            <div style="font-weight: 700; color: var(--white-highlight); font-size: 1.1rem;" id="toastTitle">Джекпот!</div>
+            <div style="font-size: 0.9rem; color: var(--steel-light); margin-top: 0.2rem;" id="toastText">+250 кристаллов получено</div>
+        </div>
+    </div>
+
+    <footer>
+        <p><b>𝐌𝐄𝐒𝐌𝐄𝐑𝐈𝐙</b> // Genshin Impact & Honkai: Star Rail Community Flood Project © 2026</p>
+        <p style="margin-top: 0.5rem;"><a href="https://ameterius.github.io/" target="_blank" style="color: var(--lavender-light); text-decoration: none;">Перейти на официальную страницу сообщества (пока видёт на хуйню бтф)</a></p>
+    </footer>
+
+    <script>
+        // Подстановка иконок в DOM при загрузке
+        document.querySelectorAll('.icon-primogem').forEach(el => el.src = ICONS.primogem);
+        document.querySelectorAll('.icon-stellarJade').forEach(el => el.src = ICONS.stellarJade);
+        document.querySelectorAll('.icon-fate').forEach(el => el.src = ICONS.fate);
+        document.querySelectorAll('.icon-railPass').forEach(el => el.src = ICONS.railPass);
+        document.querySelectorAll('.icon-electro').forEach(el => el.src = ICONS.electro);
+        document.querySelectorAll('.icon-acheron').forEach(el => el.src = ICONS.acheron);
+        alert("Пока тут всё фиктивно. Накидал пока через ИИ, т.к. блять инфы ну мало, чё скажу, пардон ... ?)
+        // Переключение вкладок (Без «горожения в одной вкладке»)
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('nav a').forEach(btn => btn.classList.remove('active'));
+
+            const targetTab = document.getElementById(`tab-${tabId}`);
+            const targetBtn = document.getElementById(`tab-btn-${tabId}`);
+            
+            if (targetTab) targetTab.classList.add('active');
+            if (targetBtn) targetBtn.classList.add('active');
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Состояние пользователя
+        let user = {
+            name: localStorage.getItem('mesmeriz_user') || null,
+            balance: parseInt(localStorage.getItem('mesmeriz_balance')) || 500
+        };
+
+        const balanceDisplay = document.getElementById('balanceDisplay');
+        const authBtn = document.getElementById('authBtn');
+        const authModal = document.getElementById('authModal');
+
+        function updateUI() {
+            balanceDisplay.textContent = `✦ ${user.balance}`;
+            if (user.name) {
+                authBtn.textContent = `🪐 ${user.name}`;
+                authBtn.classList.remove('btn-outline');
+                authBtn.classList.add('btn');
+            } else {
+                authBtn.textContent = 'Войти';
+                authBtn.classList.add('btn-outline');
+                authBtn.classList.remove('btn');
+            }
+            localStorage.setItem('mesmeriz_balance', user.balance);
+            if (user.name) localStorage.setItem('mesmeriz_user', user.name);
+        }
+
+        function openModal() {
+            authModal.classList.add('active');
+        }
+
+        authModal.addEventListener('click', (e) => {
+            if (e.target === authModal) authModal.classList.remove('active');
+        });
+
+        function login() {
+            const input = document.getElementById('usernameInput').value.trim();
+            if (input) {
+                user.name = input;
+                authModal.classList.remove('active');
+                showToast('✨', 'Успешный вход!', `Добро пожаловать в 𝐌𝐄𝐒𝐌𝐄𝐑𝐈𝐙, ${user.name}`);
+                updateUI();
+            } else {
+                document.getElementById('usernameInput').style.borderColor = 'red';
+            }
+        }
+
+        function showToast(icon, title, text) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastIcon').textContent = icon;
+            document.getElementById('toastTitle').textContent = title;
+            document.getElementById('toastText').textContent = text;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3800);
+        }
+
+        // ================== КОЛЕСО ФОРТУНЫ ==================
+        const wheelCanvas = document.getElementById('wheelCanvas');
+        const ctx = wheelCanvas.getContext('2d');
+        
+        const sectors = [
+            { label: '0 ✦', color: '#181126', text: '#828c9e', prize: 0, iconKey: 'electro' },
+            { label: '100 ✦ Судьба', color: '#57447d', text: '#f2f4fc', prize: 100, iconKey: 'fate' },
+            { label: 'Повтор 60 ✦', color: '#211833', text: '#b3a1db', prize: 60, iconKey: 'railPass' },
+            { label: '250 ✦ Примогем', color: '#dfc285', text: '#0f0a19', prize: 250, iconKey: 'primogem' },
+            { label: '0 ✦', color: '#181126', text: '#828c9e', prize: 0, iconKey: 'acheron' },
+            { label: '30 ✦ Райден', color: '#36294e', text: '#f2f4fc', prize: 30, iconKey: 'electro' },
+            { label: '150 ✦ Нефрит', color: '#8e7bb8', text: '#0f0a19', prize: 150, iconKey: 'stellarJade' },
+            { label: '10 ✦ Ахерон', color: '#211833', text: '#a8b2c4', prize: 10, iconKey: 'acheron' }
+        ];
+
+        // Загрузка изображений для отрисовки на Canvas колеса
+        const loadedImages = {};
+        let loadedCount = 0;
+        const iconKeys = Object.keys(ICONS);
+        iconKeys.forEach(key => {
+            const img = new Image();
+            img.src = ICONS[key];
+            img.onload = () => {
+                loadedImages[key] = img;
+                loadedCount++;
+                if (loadedCount === iconKeys.length) drawWheel();
+            };
+        });
+
+        let currentAngle = 0;
+        let isSpinning = false;
+
+        function drawWheel() {
+            const numSectors = sectors.length;
+            const arc = (2 * Math.PI) / numSectors;
+            ctx.clearRect(0, 0, wheelCanvas.width, wheelCanvas.height);
+
+            const cx = wheelCanvas.width / 2;
+            const cy = wheelCanvas.height / 2;
+            const r = cx - 6;
+
+            sectors.forEach((sector, i) => {
+                const angle = i * arc;
+                ctx.beginPath();
+                ctx.fillStyle = sector.color;
+                ctx.moveTo(cx, cy);
+                ctx.arc(cx, cy, r, angle, angle + arc);
+                ctx.lineTo(cx, cy);
+                ctx.fill();
+
+                // Отрисовка текста и иконки
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.rotate(angle + arc / 2);
+                
+                // Текст
+                ctx.textAlign = 'right';
+                ctx.fillStyle = sector.text;
+                ctx.font = 'bold 13px Segoe UI, sans-serif';
+                ctx.fillText(sector.label, r - 48, 5);
+
+                // Иконка на секторе
+                if (loadedImages[sector.iconKey]) {
+                    ctx.drawImage(loadedImages[sector.iconKey], r - 38, -12, 24, 24);
+                }
+
+                ctx.restore();
+            });
+        }
+
+        drawWheel();
+
+        function spinWheel() {
+            if (isSpinning) return;
+            if (user.balance < 60) {
+                showToast('❌', 'Недостаточно кристаллов', 'Стоимость прокрута: 60 ✦');
+                return;
+            }
+
+            user.balance -= 60;
+            updateUI();
+            isSpinning = true;
+            document.getElementById('spinWheelBtn').disabled = true;
+
+            const spinAngle = Math.floor(Math.random() * 360) + 1440; // 4+ оборотов
+            currentAngle += spinAngle;
+            wheelCanvas.style.transform = `rotate(${currentAngle}deg)`;
+
+            setTimeout(() => {
+                isSpinning = false;
+                document.getElementById('spinWheelBtn').disabled = false;
+
+                const actualAngle = (360 - (currentAngle % 360) + 270) % 360;
+                const sectorIndex = Math.floor((actualAngle / 360) * sectors.length);
+                const winningSector = sectors[sectorIndex];
+
+                if (winningSector.prize > 0) {
+                    user.balance += winningSector.prize;
+                    updateUI();
+                    if (winningSector.prize >= 250) {
+                        showToast('🏆', 'ЛЕГЕНДАРНЫЙ ДЖЕКПОТ!', `Вы выиграли ${winningSector.prize} ✦ (Примогем)!`);
+                    } else {
+                        showToast('🎁', 'Поздравляем с выигрышем!', `Вы получили ${winningSector.prize} ✦ (${winningSector.label})`);
+                    }
+                } else {
+                    showToast('🌙', 'Неудача', 'Пустой сектор... Попробуйте еще раз!');
+                }
+            }, 4500);
+        }
+
+        // ================== КВАНТОВЫЕ СЛОТЫ ==================
+        const slotSymbols = [
+            { key: 'primogem', name: 'Примогем', img: ICONS.primogem },
+            { key: 'stellarJade', name: 'Зв. Нефрит', img: ICONS.stellarJade },
+            { key: 'fate', name: 'Судьба', img: ICONS.fate },
+            { key: 'railPass', name: 'Пропуск', img: ICONS.railPass },
+            { key: 'electro', name: 'Райден', img: ICONS.electro },
+            { key: 'acheron', name: 'Ахерон', img: ICONS.acheron }
+        ];
+
+        // Установка начальных символов в слоты
+        function initSlots() {
+            document.getElementById('reelImg1').src = slotSymbols[0].img;
+            document.getElementById('reelName1').textContent = slotSymbols[0].name;
+
+            document.getElementById('reelImg2').src = slotSymbols[1].img;
+            document.getElementById('reelName2').textContent = slotSymbols[1].name;
+
+            document.getElementById('reelImg3').src = slotSymbols[2].img;
+            document.getElementById('reelName3').textContent = slotSymbols[2].name;
+        }
+        initSlots();
+
+        let slotsSpinning = false;
+
+        function spinSlots() {
+            if (slotsSpinning) return;
+            if (user.balance < 20) {
+                showToast('❌', 'Недостаточно кристаллов', 'Стоимость прокрута: 20 ✦');
+                return;
+            }
+
+            user.balance -= 20;
+            updateUI();
+            slotsSpinning = true;
+            document.getElementById('spinSlotsBtn').disabled = true;
+
+            const reels = [document.getElementById('reel1'), document.getElementById('reel2'), document.getElementById('reel3')];
+            reels.forEach(r => r.classList.add('spinning'));
+
+            let counter = 0;
+            const interval = setInterval(() => {
+                reels.forEach((r, idx) => {
+                    const randSym = slotSymbols[Math.floor(Math.random() * slotSymbols.length)];
+                    document.getElementById(`reelImg${idx+1}`).src = randSym.img;
+                    document.getElementById(`reelName${idx+1}`).textContent = randSym.name;
+                });
+                counter++;
+                if (counter > 22) {
+                    clearInterval(interval);
+                    reels.forEach(r => r.classList.remove('spinning'));
+
+                    const res = [
+                        slotSymbols[Math.floor(Math.random() * slotSymbols.length)],
+                        slotSymbols[Math.floor(Math.random() * slotSymbols.length)],
+                        slotSymbols[Math.floor(Math.random() * slotSymbols.length)]
+                    ];
+
+                    for (let i = 0; i < 3; i++) {
+                        document.getElementById(`reelImg${i+1}`).src = res[i].img;
+                        document.getElementById(`reelName${i+1}`).textContent = res[i].name;
+                    }
+
+                    slotsSpinning = false;
+                    document.getElementById('spinSlotsBtn').disabled = false;
+
+                    // Проверка выигрыша
+                    if (res[0].key === res[1].key && res[1].key === res[2].key) {
+                        if (res[0].key === 'primogem') {
+                            user.balance += 666;
+                            showToast('👑', 'СУПЕР ДЖЕКПОТ 666 ✦', 'Выпало три Примогема! Невероятная удача!');
+                        } else if (res[0].key === 'stellarJade') {
+                            user.balance += 300;
+                            showToast('🌟', 'МЕГА КУШ 300 ✦', 'Три Звездных Нефрита в ряд!');
+                        } else {
+                            user.balance += 100;
+                            showToast('🎉', 'Отличный куш!', `Три символа «${res[0].name}»! Вы выиграли 100 ✦`);
+                        }
+                    } else if (res[0].key === res[1].key || res[1].key === res[2].key || res[0].key === res[2].key) {
+                        user.balance += 10;
+                        showToast('✨', 'Совпадение пары', 'Вам возвращается 10 кристаллов!');
+                    } else {
+                        showToast('🪐', 'Мимо', 'Символы не совпали. Удача обязательно улыбнется в следующий раз!');
+                    }
+                    updateUI();
+                }
+            }, 80);
+        }
+
+        updateUI();
+    </script>
+</body>
+</html>
