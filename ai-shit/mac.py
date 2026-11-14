@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 """mac_agent.py — видимая консоль для удалённой помощи (как SSH, только через релей).
 
-Настройки берутся из relay.cfg (переменная RELAY_CFG, иначе ./relay.cfg,
-иначе ~/.relay.cfg). Аргументов командной строки нет. Зависимостей нет —
-только стандартная библиотека Python 3.
+Настройки — в relay.cfg (RELAY_CFG → ./relay.cfg → ~/.relay.cfg).
+Зависимостей нет, только стандартная библиотека Python 3.
 
 Что происходит:
-  1. Скрипт открывает ОДИН настоящий интерактивный шелл в псевдотерминале.
-  2. Показывает ВИДИМОЕ окно консоли (если [ui] gui = yes): владелец видит
-     свой шелл и всё, что делает помощник, и может работать сам.
-  3. Вывод шелла транслируется через Java-релей второй стороне.
-  4. Закрыл окно / нажал СТОП — сессия закончилась. Автозапуска нет.
+  1. Открывается ОДИН настоящий интерактивный шелл в псевдотерминале.
+  2. Видимое окно (если [ui] gui = yes): владелец видит свой шелл и всё,
+     что делает помощник, и может работать сам.
+  3. Вывод шелла идёт через Java-релей второй стороне.
+  4. Обрыв связи НЕ убивает шелл: агент молча переподключается с backoff,
+     сессия продолжается с того же места.
+  5. Закрыл окно / нажал СТОП — сессия закончилась. Автозапуска нет.
 
 Запуск:
     python3 mac_agent.py
-    RELAY_CFG=/etc/relay.cfg python3 mac_agent.py
 """
 
 import fcntl
@@ -43,9 +43,173 @@ def clean(text):
     return CTRL_RE.sub("", ANSI_RE.sub("", text))
 
 
-class ShellSession:
-    """Один интерактивный шелл в псевдотерминале (как SSH-сессия)."""
+# =====================================================================
+#  Link — соединение с релеем: keepalive, пинг, автопереподключение.
+#  Одинаковый код в агенте и контроллере намеренно: каждый файл
+#  самодостаточен, общих модулей кроме relcfg.py нет.
+# =====================================================================
+class Link:
+    PING_EVERY = 15          # секунд между пингами (держит NAT/файрвол живым)
+    DEAD_AFTER = 70          # если столько секунд нет данных — канал считаем мёртвым
+    CONNECT_TIMEOUT = 10     # таймаут ТОЛЬКО на установку соединения
 
+    def __init__(self, cfg, log, on_message, on_state=None, peer_label="вторая сторона"):
+        self.cfg = cfg
+        self.log = log
+        self.on_message = on_message
+        self.on_state = on_state or (lambda state: None)
+        self.peer_label = peer_label
+
+        self.room = cfg.get("client.room", "")
+        self.token = cfg.get("relay.token", "")
+        self.host = cfg.get("client.host", "127.0.0.1")
+        self.port = cfg.get_int("client.port", 8765)
+
+        self.sock = None
+        self.connected = False
+        self.peer = False
+        self.running = True
+        self.last_rx = 0.0
+        self.send_lock = threading.Lock()
+
+    # ---------- жизненный цикл ----------
+    def start(self):
+        threading.Thread(target=self._supervisor, daemon=True).start()
+        threading.Thread(target=self._heartbeat, daemon=True).start()
+
+    def stop(self):
+        self.running = False
+        self._close()
+
+    # ---------- отправка ----------
+    def send(self, obj):
+        sock = self.sock
+        if sock is None or not self.connected:
+            return False
+        try:
+            with self.send_lock:
+                sock.sendall((json.dumps(obj) + "\n").encode())
+            return True
+        except Exception:
+            self._close()
+            return False
+
+    # ---------- переподключение ----------
+    def _supervisor(self):
+        delay = 2
+        while self.running:
+            try:
+                self._session()
+                delay = 2                      # нормальный обрыв — ждём немного
+            except Exception as e:
+                if self.running:
+                    self.log(f"\n[сеть] {e}\n")
+            if not self.running:
+                break
+            self.log(f"[сеть] переподключение через {delay} с\n")
+            time.sleep(delay)
+            delay = min(delay * 2, 20)
+
+    def _session(self):
+        sock = socket.create_connection((self.host, self.port), timeout=self.CONNECT_TIMEOUT)
+        # ВАЖНО: снимаем таймаут чтения. Иначе recv падает через N секунд тишины
+        # и сессия рвётся сама по себе — именно это и рвало коннект.
+        sock.settimeout(None)
+
+        # Держим канал живым на уровне TCP (помогает против NAT-таймаутов)
+        try:
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+            for opt, val in (("TCP_KEEPIDLE", 15), ("TCP_KEEPINTVL", 10), ("TCP_KEEPCNT", 3)):
+                if hasattr(socket, opt):
+                    sock.setsockopt(socket.IPPROTO_TCP, getattr(socket, opt), val)
+        except Exception:
+            pass
+
+        first = f"ROOM:{self.room}:{self.token}\n" if self.token else f"ROOM:{self.room}\n"
+        sock.sendall(first.encode())
+
+        self.sock = sock
+        self.connected = True
+        self.last_rx = time.time()
+        self.log(f"[сеть] подключено к {self.host}:{self.port}, комната {self.room}\n")
+        self.on_state("conn")
+
+        try:
+            buf = b""
+            while self.running:
+                chunk = sock.recv(65536)
+                if not chunk:
+                    raise ConnectionError("релей закрыл соединение")
+                self.last_rx = time.time()
+                buf += chunk
+                while b"\n" in buf:
+                    line, buf = buf.split(b"\n", 1)
+                    line = line.strip()
+                    if line:
+                        self._dispatch(line)
+        finally:
+            had_peer = self.peer
+            self._close()
+            self.on_state("lost")
+            if had_peer:
+                self.log(f"\n[!] {self.peer_label} отключился\n")
+
+    def _close(self):
+        self.connected = False
+        self.peer = False
+        sock, self.sock = self.sock, None
+        if sock is not None:
+            try:
+                sock.shutdown(socket.SHUT_RDWR)
+            except Exception:
+                pass
+            try:
+                sock.close()
+            except Exception:
+                pass
+
+    # ---------- приём ----------
+    def _dispatch(self, raw):
+        try:
+            msg = json.loads(raw)
+        except Exception:
+            return
+        t = msg.get("type")
+        if t == "peer_connected":
+            self.peer = True
+            self.on_state("peer")
+            self.log(f"\n[!] {self.peer_label} подключился\n")
+            self.on_message(msg)
+        elif t == "peer_disconnected":
+            self.peer = False
+            self.on_state("conn")
+            self.log(f"\n[!] {self.peer_label} отключился\n")
+        elif t == "ping":
+            self.send({"type": "pong"})
+        elif t == "pong":
+            pass
+        elif t == "error":
+            self.log(f"\n[сеть] релей: {msg.get('msg')}\n")
+        else:
+            self.on_message(msg)
+
+    # ---------- пинг и сторож ----------
+    def _heartbeat(self):
+        while self.running:
+            time.sleep(self.PING_EVERY)
+            if not self.connected:
+                continue
+            if time.time() - self.last_rx > self.DEAD_AFTER:
+                self.log("\n[сеть] тишина слишком долго — переподключаюсь\n")
+                self._close()
+                continue
+            self.send({"type": "ping"})
+
+
+# =====================================================================
+#  Шелл в псевдотерминале
+# =====================================================================
+class ShellSession:
     def __init__(self, on_output, shell_path="", cols=100, rows=30):
         self.on_output = on_output
         self.shell_path = shell_path
@@ -106,7 +270,7 @@ class ShellSession:
                 if not data:
                     break
                 self.on_output(clean(data.decode("utf-8", "replace")))
-            except (OSError, Exception):
+            except Exception:
                 break
         self.alive = False
         self.on_output("\n[сессия] шелл завершился\n")
@@ -125,7 +289,6 @@ class ShellSession:
         self.write(mapping.get(ch, ch))
 
     def redraw(self):
-        """Попросить шелл перерисовать приглашение (после подключения)."""
         self.write("\n")
 
     def restart(self):
@@ -152,120 +315,65 @@ class ShellSession:
         self.alive = False
 
 
+# =====================================================================
+#  Агент
+# =====================================================================
 class Agent:
     def __init__(self, cfg, log):
         self.cfg = cfg
         self.log = log
-        self.sock = None
-        self.connected = False
-        self.peer = False
-        self.send_lock = threading.Lock()
         self.room = cfg.get("client.room", "")
-        self.token = cfg.get("relay.token", "")
+        self.gui_status = None      # выставит GUI, если он есть
         self.shell = ShellSession(
             on_output=self.on_shell_output,
             shell_path=cfg.get("agent.shell", ""),
             cols=cfg.get_int("ui.cols", 100),
             rows=cfg.get_int("ui.rows", 30),
         )
+        self.link = Link(cfg, log, self.on_message,
+                         on_state=self.on_state, peer_label="Помощник")
 
     # ---------- вывод ----------
     def on_shell_output(self, text):
         self.log(text)
-        if self.peer:
-            self.send({"type": "out", "data": text})
+        if self.link.peer:
+            self.link.send({"type": "out", "data": text})
 
-    # ---------- сеть ----------
-    def send(self, obj):
-        if not self.sock or not self.connected:
-            return
-        try:
-            with self.send_lock:
-                self.sock.sendall((json.dumps(obj) + "\n").encode())
-        except Exception:
-            self.connected = False
+    def on_state(self, state):
+        if self.gui_status:
+            self.gui_status(state)
 
-    def connect(self):
-        host = self.cfg.get("client.host", "127.0.0.1")
-        port = self.cfg.get_int("client.port", 8765)
-        first = f"ROOM:{self.room}:{self.token}\n" if self.token else f"ROOM:{self.room}\n"
-        delay = 2
-        while True:
-            try:
-                s = socket.create_connection((host, port), timeout=10)
-                s.sendall(first.encode())
-                self.sock, self.connected = s, True
-                self.log(f"[сеть] подключено к релею {host}:{port}, комната {self.room}\n")
-                threading.Thread(target=self.recv_loop, daemon=True).start()
-                return
-            except Exception as e:
-                self.log(f"[сеть] релей недоступен ({e}), повтор через {delay} с\n")
-                time.sleep(delay)
-                delay = min(delay * 2, 30)
-
-    def disconnect(self):
-        self.connected = False
-        self.peer = False
-        try:
-            if self.sock:
-                self.sock.close()
-        except Exception:
-            pass
-        self.sock = None
-
-    def recv_loop(self):
-        f = self.sock.makefile("r", encoding="utf-8")
-        try:
-            for line in f:
-                line = line.strip()
-                if not line:
-                    continue
-                try:
-                    msg = json.loads(line)
-                except Exception:
-                    continue
-                self.handle(msg)
-        except Exception:
-            pass
-        finally:
-            self.connected = False
-            self.peer = False
-            self.log("\n[сеть] соединение с релеем потеряно\n")
-
-    def handle(self, msg):
+    # ---------- команды от помощника ----------
+    def on_message(self, msg):
         t = msg.get("type")
         if t == "peer_connected":
-            self.peer = True
-            self.log("\n[!] Помощник подключён — его ввод теперь идёт в этот шелл\n")
-            self.send({"type": "hello", "host": socket.gethostname(),
-                       "user": os.environ.get("USER", "?"), "cwd": os.getcwd(),
-                       "cols": self.shell.cols, "rows": self.shell.rows})
+            self.link.send({"type": "hello", "host": socket.gethostname(),
+                            "user": os.environ.get("USER", "?"), "cwd": os.getcwd(),
+                            "cols": self.shell.cols, "rows": self.shell.rows})
             self.shell.redraw()
-        elif t == "peer_disconnected":
-            self.peer = False
-            self.log("\n[!] Помощник отключился\n")
-        elif t == "error":
-            self.log(f"\n[сеть] релей: {msg.get('msg')}\n")
-        elif not self.peer:
-            self.log("\n[!] данные от неизвестного клиента проигнорированы\n")
         elif t == "input":
             self.shell.write(msg.get("data", ""))
         elif t == "ctrl":
             self.shell.send_ctrl(msg.get("key", "c"))
         elif t == "resize":
             self.shell.resize(int(msg.get("cols", 100)), int(msg.get("rows", 30)))
+        elif t == "redraw":
+            self.shell.redraw()
         elif t == "restart":
             self.log("\n[!] Помощник перезапустил шелл\n")
             self.shell.restart()
-        elif t == "ping":
-            self.send({"type": "pong", "t": time.time()})
 
     # ---------- запуск ----------
     def run(self):
         self.shell.start()
-        self.connect()
+        self.link.start()
         self.log(f"[i] Код комнаты: {self.room} — сообщи его помощнику\n"
-                 f"[i] Всё, что происходит, видно в этом окне. Закрыл окно — доступа нет.\n\n")
+                 f"[i] Всё, что происходит, видно в этом окне. Закрыл окно — доступа нет.\n"
+                 f"[i] Обрыв связи не страшен: переподключение автоматическое.\n\n")
+
+    def stop(self):
+        self.link.stop()
+        self.shell.kill()
 
 
 # ============================ GUI (Tk) ============================
@@ -308,6 +416,7 @@ class AgentGUI:
 
         self.root.protocol("WM_DELETE_WINDOW", self.stop)
         self.agent = Agent(cfg, self.append)
+        self.agent.gui_status = self.set_state
         self.root.after(100, self.agent.run)
 
     def append(self, text):
@@ -316,10 +425,16 @@ class AgentGUI:
             self.text.insert("end", text)
             self.text.see("end")
             self.text.configure(state="disabled")
-            if self.agent.connected:
-                self.status.configure(
-                    text="● подключено к релею" + ("  |  помощник активен" if self.agent.peer else ""),
-                    fg="darkgreen" if self.agent.peer else "green")
+        self.root.after(0, _do)
+
+    def set_state(self, state):
+        def _do():
+            if state == "peer":
+                self.status.configure(text="● помощник активен", fg="darkgreen")
+            elif state == "conn":
+                self.status.configure(text="● релей на связи, ждём помощника", fg="green")
+            else:
+                self.status.configure(text="● соединение потеряно, переподключаюсь", fg="orange")
         self.root.after(0, _do)
 
     def local_enter(self, _event=None):
@@ -328,8 +443,7 @@ class AgentGUI:
         self.agent.shell.write(line + "\n")
 
     def stop(self):
-        self.agent.disconnect()
-        self.agent.shell.kill()
+        self.agent.stop()
         self.root.destroy()
 
     def run(self):
@@ -360,13 +474,12 @@ def run_headless(cfg):
 
     threading.Thread(target=stdin_loop, daemon=True).start()
     try:
-        while agent.shell.alive or agent.connected:
+        while agent.shell.alive:
             time.sleep(0.5)
     except KeyboardInterrupt:
         pass
     finally:
-        agent.shell.kill()
-        agent.disconnect()
+        agent.stop()
         print("\n[сессия] завершена")
 
 
@@ -378,7 +491,6 @@ def main():
         sys.exit(1)
     print(f"[i] Конфиг: {cfg.path}")
 
-    # код комнаты: если пустой — генерируем и записываем в конфиг
     if not cfg.get("client.room", "").strip():
         room = "".join(random.choices("0123456789", k=6))
         if cfg.save("client.room", room):
