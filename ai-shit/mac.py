@@ -72,6 +72,27 @@ class Link:
         self.last_rx = 0.0
         self.send_lock = threading.Lock()
 
+        # ---- авто-коннект (всё настраивается в relay.cfg) ----
+        self.auto_connect = cfg.get_bool("net.auto_connect", True)
+        self.retry_delay = cfg.get_float("net.retry_delay", 1.0)    # первая пауза, сек
+        self.retry_max = cfg.get_float("net.retry_max", 5.0)        # потолок паузы, сек
+        self.ping_every = cfg.get_float("net.ping_every", 15.0)
+        self.dead_after = cfg.get_float("net.dead_after", 70.0)
+        self.connect_timeout = cfg.get_float("net.connect_timeout", 10.0)
+        self.backoff = self.retry_delay
+
+        # ---- режим "по требованию" ----
+        self.refresh_every = cfg.get_float("relay.refresh_every", 60.0)   # перепроверка релея
+        self.cooldown = cfg.get_float("relay.cooldown", 300.0)            # КД, если не нужен
+        self.offline_max = cfg.get_float("relay.offline_max", 60.0)       # молчание -> КД
+        self.idle_cooldown = cfg.get_float("agent.idle_cooldown", 900.0)  # КД после сессии
+        self.wanted = True            # релей сказал: коннект нужен
+        self.kd_until = 0.0           # до какого времени сидим в КД
+        self.peer_was = False
+        self.session_started = 0.0
+        self.silent_since = 0.0
+        self.connect_began = 0.0
+
     # ---------- жизненный цикл ----------
     def start(self):
         threading.Thread(target=self._supervisor, daemon=True).start()
@@ -95,23 +116,49 @@ class Link:
             return False
 
     # ---------- переподключение ----------
+    def _cooldown_left(self):
+        return max(0.0, self.kd_until - time.time())
+
     def _supervisor(self):
-        delay = 2
+        delay = self.retry_delay
         while self.running:
+            # --- КД: релей/контроллер сказал "сейчас не нужен" ---
+            left = self._cooldown_left()
+            if left > 0:
+                self.on_state("cooldown")
+                self.log(f"[сеть] КД: следующая перепроверка релея через {int(left)} с\n")
+                while self.running and self._cooldown_left() > 0:
+                    time.sleep(min(5.0, self._cooldown_left()))
+                if not self.running:
+                    break
+                self.log("[сеть] КД закончился — перепроверяю релей\n")
+
             try:
-                self._session()
-                delay = 2                      # нормальный обрыв — ждём немного
+                self._session()                   # внутри: рукопожатие + возможно КД
+                delay = self.retry_delay
             except Exception as e:
                 if self.running:
                     self.log(f"\n[сеть] {e}\n")
             if not self.running:
                 break
-            self.log(f"[сеть] переподключение через {delay} с\n")
+            if not self.auto_connect:
+                self.log("[сеть] авто-коннект выключен ([net] auto_connect = no)\n")
+                break
+
+            # если релей сказал "не нужен" — уходим в КД, а не в ретрай
+            if not self.wanted and self._cooldown_left() <= 0:
+                self.kd_until = time.time() + self.cooldown
+                self.log(f"[сеть] релей: коннект не требуется — КД {int(self.cooldown)} с\n")
+                continue
+
+            delay = min(max(delay, self.backoff), self.retry_max)
+            self.log(f"[сеть] переподключение через {delay:g} с\n")
             time.sleep(delay)
-            delay = min(delay * 2, 20)
+            delay = min(delay * 2, self.retry_max)
 
     def _session(self):
-        sock = socket.create_connection((self.host, self.port), timeout=self.CONNECT_TIMEOUT)
+        self.connect_began = time.time()
+        sock = socket.create_connection((self.host, self.port), timeout=self.connect_timeout)
         # ВАЖНО: снимаем таймаут чтения. Иначе recv падает через N секунд тишины
         # и сессия рвётся сама по себе — именно это и рвало коннект.
         sock.settimeout(None)
@@ -125,12 +172,18 @@ class Link:
         except Exception:
             pass
 
-        first = f"ROOM:{self.room}:{self.token}\n" if self.token else f"ROOM:{self.room}\n"
+        count = 1 if self.auto_connect else 0
+        first = (f"ROOM:{self.room}:{self.token}:{count}\n" if self.token
+                 else f"ROOM:{self.room}::{count}\n")
         sock.sendall(first.encode())
 
         self.sock = sock
         self.connected = True
         self.last_rx = time.time()
+        self.backoff = self.retry_delay
+        self.session_started = time.time()
+        self.silent_since = 0.0
+        self.wanted = True
         self.log(f"[сеть] подключено к {self.host}:{self.port}, комната {self.room}\n")
         self.on_state("conn")
 
@@ -149,8 +202,10 @@ class Link:
                         self._dispatch(line)
         finally:
             had_peer = self.peer
+            was_connected = self.connected
             self._close()
-            self.on_state("lost")
+            if was_connected:
+                self.on_state("lost")
             if had_peer:
                 self.log(f"\n[!] {self.peer_label} отключился\n")
 
@@ -177,29 +232,67 @@ class Link:
         t = msg.get("type")
         if t == "peer_connected":
             self.peer = True
+            self.peer_was = True
             self.on_state("peer")
             self.log(f"\n[!] {self.peer_label} подключился\n")
             self.on_message(msg)
         elif t == "peer_disconnected":
             self.peer = False
-            self.on_state("conn")
+            self.peer_was = True
+            self.on_state("idle")
             self.log(f"\n[!] {self.peer_label} отключился\n")
+        elif t == "relay_demand":
+            # релей спрашивает: нужен ли коннект? Отвечаем своим флагом спроса.
+            self.send({"type": "demand", "still": self.auto_connect})
+            self.log(f"\n[сеть] перепроверка релея → отвечаю: "
+                     f"{'нужен' if self.auto_connect else 'не нужен'}\n")
+        elif t == "relay_cmd":
+            self._relay_cmd(msg)
         elif t == "ping":
             self.send({"type": "pong"})
         elif t == "pong":
             pass
         elif t == "error":
-            self.log(f"\n[сеть] релей: {msg.get('msg')}\n")
+            text = str(msg.get("msg", ""))
+            self.log(f"\n[сеть] релей: {text}\n")
+            # релей не пустил (нет места / плохой токен) — не долбим его сразу
+            if "занята" in text or "токен" in text:
+                self._close()
+                self.backoff = self.retry_max   # не долбим релей, но и не ждём вечность
         else:
             self.on_message(msg)
+
+    def _relay_cmd(self, msg):
+        """Команда от релея, которую контроллер прописал в relay.cfg."""
+        cmd = str(msg.get("cmd", ""))
+        if cmd in ("cooldown", "standby"):
+            seconds = float(msg.get("seconds") or self.cooldown)
+            self.kd_until = time.time() + seconds
+            self.peer = False
+            self.log(f"\n[сеть] релей: КД {int(seconds)} с "
+                     f"(контроллер указал, что коннект сейчас не нужен)\n")
+            self._close()
+        elif cmd == "wake":
+            self.kd_until = 0.0
+            self.log("\n[сеть] релей: разбудили из КД\n")
+        else:
+            self.log(f"\n[сеть] неизвестная команда релея: {cmd}\n")
 
     # ---------- пинг и сторож ----------
     def _heartbeat(self):
         while self.running:
-            time.sleep(self.PING_EVERY)
+            time.sleep(self.ping_every)
             if not self.connected:
                 continue
-            if time.time() - self.last_rx > self.DEAD_AFTER:
+            if not self.connected and self.offline_max > 0:
+                gone = time.time() - (self.silent_since or time.time())
+                if gone > self.offline_max:
+                    self.kd_until = time.time() + self.cooldown
+                    self.silent_since = time.time()
+                    self.log(f"\n[сеть] релей недоступен {int(gone)} с — "
+                             f"ухожу в КД {int(self.cooldown)} с\n")
+                    continue
+            if time.time() - self.last_rx > self.dead_after:
                 self.log("\n[сеть] тишина слишком долго — переподключаюсь\n")
                 self._close()
                 continue
@@ -334,6 +427,17 @@ class Agent:
                          on_state=self.on_state, peer_label="Помощник")
 
     # ---------- вывод ----------
+    def maybe_idle_kd(self):
+        """Сессия закончилась — не висим на релее, уходим в КД на idle_cooldown."""
+        link = self.link
+        if (link.idle_cooldown > 0 and link.peer_was and not link.peer
+                and link.connected and link.session_started
+                and time.time() - link.session_started > 30):
+            link.kd_until = time.time() + link.idle_cooldown
+            link.peer_was = False
+            self.log(f"\n[сеть] сессия завершена — КД {int(link.idle_cooldown)} с\n")
+            link._close()
+
     def on_shell_output(self, text):
         self.log(text)
         if self.link.peer:
@@ -342,6 +446,8 @@ class Agent:
     def on_state(self, state):
         if self.gui_status:
             self.gui_status(state)
+        if state == "idle":
+            self.maybe_idle_kd()
 
     # ---------- команды от помощника ----------
     def on_message(self, msg):
@@ -433,6 +539,8 @@ class AgentGUI:
                 self.status.configure(text="● помощник активен", fg="darkgreen")
             elif state == "conn":
                 self.status.configure(text="● релей на связи, ждём помощника", fg="green")
+            elif state == "cooldown":
+                self.status.configure(text="● КД: коннект сейчас не нужен, сплю", fg="#8a6d00")
             else:
                 self.status.configure(text="● соединение потеряно, переподключаюсь", fg="orange")
         self.root.after(0, _do)
